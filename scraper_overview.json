@@ -1,0 +1,270 @@
+{
+  "updated_at": "2026-09-21T15:50:09.753609",
+  "total_jobs": 14912,
+  "total_companies": 7843,
+  "total_sources": 6,
+  "sources": [
+    {
+      "id": "careerviet",
+      "name": "CareerViet",
+      "count": 1120,
+      "companies_count": 686,
+      "latest_time": "2026-09-14 17:18:51",
+      "color": "#e00016",
+      "icon": "fa-solid fa-globe",
+      "status": "Hoạt động"
+    },
+    {
+      "id": "jobsgo",
+      "name": "JobsGO",
+      "count": 3470,
+      "companies_count": 1732,
+      "latest_time": "2026-09-18 15:50:24",
+      "color": "#1877f2",
+      "icon": "fa-solid fa-briefcase",
+      "status": "Hoạt động"
+    },
+    {
+      "id": "topcv",
+      "name": "TopCV",
+      "count": 8178,
+      "companies_count": 4036,
+      "latest_time": "2026-09-18 22:43:47",
+      "color": "#00b14f",
+      "icon": "fa-solid fa-graduation-cap",
+      "status": "Hoạt động"
+    },
+    {
+      "id": "vieclam24h",
+      "name": "Vieclam24h",
+      "count": 1882,
+      "companies_count": 1193,
+      "latest_time": "2026-08-21 16:35:06",
+      "color": "#ff6b00",
+      "icon": "fa-solid fa-building",
+      "status": "Hoạt động"
+    },
+    {
+      "id": "vietnamworks",
+      "name": "VietnamWorks",
+      "count": 260,
+      "companies_count": 194,
+      "latest_time": "2026-08-14 20:54:51",
+      "color": "#005aff",
+      "icon": "fa-solid fa-network-wired",
+      "status": "Hoạt động"
+    },
+    {
+      "id": "facebook_group",
+      "name": "Facebook Group Leads",
+      "count": 2,
+      "companies_count": 2,
+      "latest_time": "2026-09-21T00:50:00",
+      "color": "#1877f2",
+      "icon": "fa-brands fa-facebook",
+      "status": "Lead Vàng Sẵn Sàng"
+    }
+  ],
+  "provinces": [
+    {
+      "name": "Hồ Chí Minh",
+      "count": 4266
+    },
+    {
+      "name": "Hà Nội",
+      "count": 3149
+    },
+    {
+      "name": "Đồng Nai",
+      "count": 904
+    },
+    {
+      "name": "Bắc Ninh",
+      "count": 793
+    },
+    {
+      "name": "Ho Chi Minh City",
+      "count": 760
+    },
+    {
+      "name": "Không đề cập",
+      "count": 600
+    },
+    {
+      "name": "Hải Phòng",
+      "count": 513
+    },
+    {
+      "name": "TP. Hồ Chí Minh",
+      "count": 488
+    }
+  ],
+  "industries": [
+    {
+      "name": "Kinh doanh",
+      "count": 2220
+    },
+    {
+      "name": "Sản xuất",
+      "count": 945
+    },
+    {
+      "name": "Kế toán",
+      "count": 875
+    },
+    {
+      "name": "Xây dựng",
+      "count": 819
+    },
+    {
+      "name": "Marketing",
+      "count": 509
+    },
+    {
+      "name": "Nhân sự",
+      "count": 459
+    },
+    {
+      "name": "Không đề cập",
+      "count": 405
+    },
+    {
+      "name": "Logistics",
+      "count": 326
+    }
+  ],
+  "salary_ranges": {
+    "under_10m": 0,
+    "10m_to_15m": 0,
+    "15m_to_25m": 0,
+    "above_25m": 0,
+    "negotiable": 0
+  },
+  "recent_jobs": [
+    {
+      "source": "CareerViet",
+      "title": "[DĨ AN - BÌNH DƯƠNG] NHÂN VIÊN KINH DOANH kênh đại lý/nhà phân phối",
+      "company": "CÔNG TY CỔ PHẦN THÀNH PHONG GROUP",
+      "location": "TP. Hồ Chí Minh",
+      "salary": "15 Tr - 25 Tr VND",
+      "url": "https://careerviet.vn/vi/tim-viec-lam/di-an-binh-duong-nhan-vien-kinh-doanh-kenh-dai-ly-nha-phan-phoi.35C826DA.html"
+    },
+    {
+      "source": "CareerViet",
+      "title": "Nhân Viên Kinh Doanh Quốc Tế",
+      "company": "Công ty CP Mây tre đan Tân Tiến",
+      "location": "Hà Nội",
+      "salary": "Cạnh tranh",
+      "url": "https://careerviet.vn/vi/tim-viec-lam/nhan-vien-kinh-doanh-quoc-te.35C83561.html"
+    },
+    {
+      "source": "CareerViet",
+      "title": "[Ninh Bình/ Hà Nam] Nhân Viên Phát Triển Thầu Thợ Xây Dựng",
+      "company": "Saint-Gobain Vietnam",
+      "location": "Phú Thọ",
+      "salary": "Cạnh tranh",
+      "url": "https://careerviet.vn/vi/tim-viec-lam/ninh-binh-ha-nam-nhan-vien-phat-trien-thau-tho-xay-dung.35C86D87.html"
+    },
+    {
+      "source": "JobsGO",
+      "title": "Sale Kỹ Thuật / Sales Engineer – Thiết Bị Hàng Hải & Cảng Biển",
+      "company": "Công Ty TNHH Dịch Vụ Công Nghiệp Việt Phong",
+      "location": "Hải Phòng",
+      "salary": "10 - 15 triệu",
+      "url": "https://jobsgo.vn/viec-lam/sale-ky-thuat-sales-engineer-thiet-bi-hang-hai-cang-bien-28849522451.html"
+    },
+    {
+      "source": "JobsGO",
+      "title": "Nhân Viên Hỗ Trợ Khách Hàng Đa Ngôn Ngữ (Anh, Trung, Nhật, Hàn) [Cầu Giấy, Hà Nội]",
+      "company": "Bellsystem24 VietNam",
+      "location": "Hà Nội",
+      "salary": "13 - 25 triệu",
+      "url": "https://jobsgo.vn/viec-lam/nhan-vien-ho-tro-khach-hang-da-ngon-ngu-anh-trung-nhat-han-cau-giay-ha-noi-28928525073.html"
+    },
+    {
+      "source": "JobsGO",
+      "title": "Nhân Viên Kinh Doanh/Tư Vấn Hồ Chí Minh (Làm Giờ Hành Chính) - Thu Nhập 10 - 15 Triệu",
+      "company": "Công Ty TNHH Bao Bì Greensun",
+      "location": "Hồ Chí Minh",
+      "salary": "10 - 15 triệu",
+      "url": "https://jobsgo.vn/viec-lam/nhan-vien-kinh-doanh-tu-van-ho-chi-minh-lam-gio-hanh-chinh-thu-nhap-10-15-trieu-28888073232.html"
+    },
+    {
+      "source": "TopCV",
+      "title": "Chuyên Viên Khách Hàng Doanh Nghiệp(1-3 Năm Kinh Nghiệm, Thành Tích Tốt Và Rất Tốt) - CN. BắcHải Phòng- PhườngHồng Bàng,Hải Phòng(2026TD451786)",
+      "company": "NGÂN HÀNG TMCP QUÂN ĐỘI – MBBANK",
+      "location": "Hải Phòng",
+      "salary": "38 - 58 triệu",
+      "url": "https://www.topcv.vn/brand/nganhangthuongmaicophanquandoi/tuyen-dung/chuyen-vien-khach-hang-doanh-nghiep-1-3-nam-kinh-nghiem-thanh-tich-tot-va-rat-tot-cn-bac-hai-phong-phuong-hong-bang-hai-phong-2026td451786-j2289374.html"
+    },
+    {
+      "source": "TopCV",
+      "title": "www.topcv.vn",
+      "company": "Không đề cập",
+      "location": "Không đề cập",
+      "salary": "Thỏa thuận",
+      "url": "https://www.topcv.vn/viec-lam/tho-lap-rap/2290106.html"
+    },
+    {
+      "source": "TopCV",
+      "title": "Nhân Viên Cơ ĐiệnThu Nhập Upto Lên Tới 20 Triệu",
+      "company": "Công ty TNHH Vinatic Hải Phòng",
+      "location": "Hải Phòng",
+      "salary": "12 - 20 triệu",
+      "url": "https://www.topcv.vn/viec-lam/nhan-vien-co-dien-thu-nhap-upto-len-toi-20-trieu/2289409.html"
+    },
+    {
+      "source": "Vieclam24h",
+      "title": "Không đề cập",
+      "company": "Không đề cập",
+      "location": "Không đề cập",
+      "salary": "Thoả thuận",
+      "url": "https://vieclam24h.vn/ke-toan/thu-ky-ke-toan-cong-trinh-lam-viec-truc-tiep-tai-du-an-c17p119id200913179.html"
+    },
+    {
+      "source": "Vieclam24h",
+      "title": "Không đề cập",
+      "company": "Không đề cập",
+      "location": "Không đề cập",
+      "salary": "Thoả thuận",
+      "url": "https://vieclam24h.vn/van-hanh-bao-tri-bao-duong/ky-thuat-vien-bao-tri-khong-yeu-cau-kinh-nghiem-di-lam-ngay-c10p119id200909712.html"
+    },
+    {
+      "source": "Vieclam24h",
+      "title": "Không đề cập",
+      "company": "Không đề cập",
+      "location": "Không đề cập",
+      "salary": "Thoả thuận",
+      "url": "https://vieclam24h.vn/xuat-nhap-khau/admin-logistics-chung-tu-xuat-nhap-khau-nhan-viec-ngay-c15p119id200917189.html"
+    },
+    {
+      "source": "VietnamWorks",
+      "title": "Tuyển Gấp - Lập Trình Viên (IT Software) - Làm Việc Tại Hưng Yên - KCN Thăng Long II",
+      "company": "Shindengen Vietnam Co., Ltd",
+      "location": "Hưng Yên",
+      "salary": "Thương lượng",
+      "url": "https://www.vietnamworks.com/tuyen-gap-lap-trinh-vien-it-software-lam-viec-tai-hung-yen-kcn-thang-long-ii-2089808-jv"
+    },
+    {
+      "source": "VietnamWorks",
+      "title": "Kế Toán Trưởng (Làm Việc Tại Duy Tân, Cầu Giấy/ Nghỉ T7, CN)",
+      "company": "Công Ty Cổ Phần Daesang Đức Việt",
+      "location": "Hưng Yên",
+      "salary": "Từ 30 ₫/tháng",
+      "url": "https://www.vietnamworks.com/ke-toan-truong-lam-viec-tai-duy-tan-cau-giay-nghi-t7-cn-2089757-jv"
+    },
+    {
+      "source": "VietnamWorks",
+      "title": "Nhân Viên Vận Hành Máy Ép Nhựa",
+      "company": "Công Ty TNHH Anthony Innovations Việt Nam",
+      "location": "Hưng Yên",
+      "salary": "Thương lượng",
+      "url": "https://www.vietnamworks.com/nhan-vien-van-hanh-may-ep-nhua-2092903-jv"
+    }
+  ],
+  "facebook_leads": {
+    "total": 2,
+    "gold_leads": 2,
+    "potential_leads": 0
+  }
+}
