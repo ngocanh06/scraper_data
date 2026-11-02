@@ -20,16 +20,54 @@ Cách dùng:
   db.close()
 """
 
+import os
 import re
+from pathlib import Path
+
 import pyodbc
+
+
+def _load_env_file() -> None:
+    env_path = Path(__file__).with_name('.env')
+    if not env_path.is_file():
+        return
+
+    for line_number, raw_line in enumerate(
+        env_path.read_text(encoding='utf-8-sig').splitlines(), start=1
+    ):
+        line = raw_line.strip()
+        if not line or line.startswith('#'):
+            continue
+        key, separator, value = line.partition('=')
+        if not separator or not key.strip():
+            raise ValueError(f'Cau hinh .env khong hop le tai dong {line_number}.')
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        os.environ.setdefault(key.strip(), value)
+
+
+_load_env_file()
 
 # ──────────────────────────────────────────────
 #  CẤU HÌNH KẾT NỐI SQL SERVER
 #  Dùng Windows Authentication → không cần user/password
 # ──────────────────────────────────────────────
-SQL_SERVER   = 'localhost'       # hoặc tên máy, ví dụ: 'DESKTOP-ABC\\SQLEXPRESS'
-DATABASE     = 'job_market'      # tên database (tự tạo nếu chưa có)
-DRIVER       = 'ODBC Driver 17 for SQL Server'   # driver ODBC
+SQL_SERVER = os.environ.get('SQL_SERVER', 'localhost')
+DATABASE = os.environ.get('SQL_DATABASE', 'job_market')
+DRIVER = os.environ.get('SQL_DRIVER', 'ODBC Driver 17 for SQL Server')
+
+
+class DatabasePersistenceError(RuntimeError):
+    """Raised when a crawler cannot reliably persist or retrieve SQL data."""
+
+
+class DatabaseWriteError(DatabasePersistenceError):
+    """Raised when a crawler record could not be committed to SQL Server."""
+
+
+class DatabaseReadError(DatabasePersistenceError):
+    """Raised when existing SQL records could not be retrieved."""
 
 
 def _get_connection_string(database: str = 'master') -> str:
@@ -205,23 +243,20 @@ def _sanitize_table_name(name: str) -> str:
 
 def _detect_driver() -> str:
     """Tự động chọn ODBC driver SQL Server có sẵn trên máy."""
-    preferred = [
+    preferred = list(dict.fromkeys([
+        DRIVER,
         'ODBC Driver 17 for SQL Server',
         'ODBC Driver 18 for SQL Server',
         'ODBC Driver 13 for SQL Server',
         'SQL Server Native Client 11.0',
-        'SQL Server',
-    ]
+    ]))
     available = pyodbc.drivers()
     for drv in preferred:
         if drv in available:
             return drv
-    # Fallback: lấy driver SQL Server đầu tiên tìm thấy
-    for drv in available:
-        if 'sql server' in drv.lower():
-            return drv
     raise RuntimeError(
-        f"Khong tim thay ODBC driver SQL Server.\nDrivers co san: {available}"
+        f"Khong tim thay ODBC driver SQL Server duoc ho tro: {preferred}.\n"
+        f"Drivers co san: {available}"
     )
 
 
@@ -313,6 +348,31 @@ class JobDB:
         cursor.close()
         return n
 
+    def get_all_records(self, source: str) -> list[dict]:
+        """Return all stored jobs in the crawler's Vietnamese field format."""
+        table = self.ensure_table(source)
+        columns = ', '.join(f'[{column}]' for _, column in _FIELD_MAP)
+        cursor = self._conn.cursor()
+        try:
+            cursor.execute(
+                f"SELECT {columns} FROM [dbo].[{table}] ORDER BY [id];"
+            )
+            rows = cursor.fetchall()
+        except pyodbc.Error as exc:
+            raise DatabaseReadError(
+                f"Khong the doc du lieu tu SQL Server table [{table}]."
+            ) from exc
+        finally:
+            cursor.close()
+
+        return [
+            {
+                field: value if value is not None else ''
+                for (field, _), value in zip(_FIELD_MAP, row)
+            }
+            for row in rows
+        ]
+
     # ── Insert ───────────────────────────────────────────────────────
     def insert(self, source: str, record: dict) -> bool:
         """
@@ -324,7 +384,10 @@ class JobDB:
         table = self.ensure_table(source)
         url = record.get('Ghi chú', '') or record.get('url', '')
         if not url:
-            return False
+            raise DatabaseWriteError(
+                f"Khong the luu ban ghi vao [{table}]: thieu URL trong truong "
+                "'Ghi chú' hoac 'url'."
+            )
 
         # Lấy giá trị theo thứ tự cột, cắt ngắn cột NVARCHAR(n) để tránh lỗi 2628
         values = [
@@ -335,10 +398,17 @@ class JobDB:
         params = [url] + values[1:] + values
 
         cursor = self._conn.cursor()
-        cursor.execute(_INSERT_TPL.format(table=table), params)
-        affected = cursor.rowcount
-        self._conn.commit()
-        cursor.close()
+        try:
+            cursor.execute(_INSERT_TPL.format(table=table), params)
+            affected = cursor.rowcount
+            self._conn.commit()
+        except pyodbc.Error as exc:
+            self._conn.rollback()
+            raise DatabaseWriteError(
+                f"Khong the ghi ban ghi vao SQL Server table [{table}], URL: {url}"
+            ) from exc
+        finally:
+            cursor.close()
         return affected >= 1
 
     def insert_many(self, source: str, records: list[dict]) -> tuple[int, int]:

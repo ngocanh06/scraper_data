@@ -50,6 +50,7 @@ print("=" * 70)
 print("🚀 BẮT ĐẦU CHẠY CÀO DỮ LIỆU ĐA NGUỒN (JobsGO -> TopCV -> VietnamWorks -> CareerViet -> Vieclam24h)")
 print("=" * 70)
 
+failed_crawlers = []
 for idx, c in enumerate(crawlers, 1):
     print(f"\n[{idx}/{len(crawlers)}] Đang khởi động Crawler: {c['name']}...")
     print(f"    - File: {c['script']}")
@@ -64,11 +65,18 @@ for idx, c in enumerate(crawlers, 1):
         )
         elapsed = time.time() - start_time
         print(f"[{idx}/{len(crawlers)}] Hoàn tất {c['name']} trong {elapsed/60:.1f} phút (Mã thoát: {proc.returncode}).")
+        if proc.returncode != 0:
+            failed_crawlers.append(c['name'])
     except Exception as e:
         print(f"[!] Lỗi khi chạy {c['name']}: {e}")
+        failed_crawlers.append(c['name'])
 
     time.sleep(3)
 
 print("\n" + "=" * 70)
+if failed_crawlers:
+    print("❌ Có crawler thất bại; xem lỗi từng crawler phía trên:")
+    print("   " + ", ".join(failed_crawlers))
+    sys.exit(1)
 print("🎉 ĐÃ HOÀN TẤT TẤT CẢ CÁC TIẾN TRÌNH CÀO DỮ LIỆU!")
 print("=" * 70)

@@ -17,7 +17,8 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from db_manager import JobDB
+from db_manager import DatabasePersistenceError, JobDB
+from excel_storage import ExcelPersistenceError, save_records_to_excel
 from parse_vieclam24h_job import (
     parse_full_vieclam24h_job,
     DEFAULT_HEADERS,
@@ -92,18 +93,9 @@ def export_excel(records: list[dict], local_path: str, root_path: str):
     """Xuất danh sách ra file Excel."""
     if not records:
         return
-    df = pd.DataFrame(records)
-    try:
-        df.to_excel(local_path, index=False)
-        print(f"  [Excel] Đã lưu {len(records)} jobs vào: {local_path}")
-    except Exception as e:
-        print(f"  [!] Lỗi lưu Excel cục bộ: {e}")
-
-    try:
-        df.to_excel(root_path, index=False)
-        print(f"  [Excel] Đã đồng bộ sang thư mục gốc: {root_path}")
-    except Exception as e:
-        print(f"  [!] Lỗi lưu Excel gốc: {e}")
+    for path in (local_path, root_path):
+        saved_path = save_records_to_excel(records, path)
+        print(f"  [Excel] Đã lưu {len(records)} jobs vào: {saved_path}")
 
 
 def main():
@@ -121,6 +113,7 @@ def main():
     session = requests.Session()
     all_scraped_records = []
     seen_urls = set()
+    last_excel_checkpoint = 0
 
     # Nạp các URL đã có trong Database để tránh cào lại
     try:
@@ -164,24 +157,35 @@ def main():
                         all_scraped_records.append(job_data)
 
                         print(f"     [+] ({len(all_scraped_records):,}) {job_data['Công việc'][:45]} | {job_data['Nhà tuyển dụng'][:30]} | {job_data['Tỉnh thành']}")
+                    except (DatabasePersistenceError, ExcelPersistenceError):
+                        raise
                     except Exception as je:
                         print(f"     [!] Lỗi cào job {j_url}: {je}")
 
                     time.sleep(random.uniform(DELAY_JOB_MIN, DELAY_JOB_MAX))
 
-                # Xuất excel định kỳ mỗi 50 jobs
-                if len(all_scraped_records) > 0 and len(all_scraped_records) % 50 == 0:
+                # Save after each ten new records, even when a page adds more than ten.
+                if len(all_scraped_records) - last_excel_checkpoint >= 10:
                     export_excel(all_scraped_records, excel_file, root_excel_file)
+                    last_excel_checkpoint = len(all_scraped_records)
 
                 time.sleep(random.uniform(1.5, 3.0))
 
+    except (DatabasePersistenceError, ExcelPersistenceError):
+        raise
     except KeyboardInterrupt:
         print("\n[!] Người dùng đã tạm dừng cào.")
     except Exception as e:
         print(f"\n[!] Có lỗi phát sinh trong quá trình cào: {e}")
     finally:
-        db.close()
-        export_excel(all_scraped_records, excel_file, root_excel_file)
+        try:
+            export_excel(
+                db.get_all_records(SOURCE_VIECLAM24H),
+                excel_file,
+                root_excel_file,
+            )
+        finally:
+            db.close()
         print(f"\n🎉 HOÀN TẤT! Đã cào thêm {len(all_scraped_records):,} jobs từ Vieclam24h.")
 
 

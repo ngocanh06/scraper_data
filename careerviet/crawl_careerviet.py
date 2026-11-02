@@ -18,7 +18,8 @@ import undetected_chromedriver as uc
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from db_manager import JobDB
+from db_manager import DatabasePersistenceError, JobDB
+from excel_storage import ExcelPersistenceError, save_records_to_excel
 from parse_careerviet_job import parse_full_careerviet_job, create_driver, SOURCE_CAREERVIET
 from provinces import get_careerviet_locations
 
@@ -85,6 +86,14 @@ def main():
     all_scraped_records = []
     seen_urls = set()
 
+    def save_excel(records=None):
+        records = all_scraped_records if records is None else records
+        if not records:
+            return
+        for path in (excel_file, root_excel_file):
+            saved_path = save_records_to_excel(records, path)
+            print(f"\n📊 Đã lưu {len(records)} dòng Excel: {saved_path}")
+
     try:
         for idx, cat in enumerate(CAREERVIET_CATEGORIES, 1):
             cat_name = cat['name']
@@ -122,27 +131,34 @@ def main():
                             all_scraped_records.append(record)
                             new_count += 1
                             print(f"      [{j_idx}/{len(job_urls)}] Saved: {record['Công việc']} | {record['Nhà tuyển dụng']} | {record['Tỉnh thành']}")
+                            if len(all_scraped_records) % 10 == 0:
+                                save_excel()
+                    except (DatabasePersistenceError, ExcelPersistenceError):
+                        raise
                     except Exception as err:
                         print(f"      [!] Lỗi cào job {j_url}: {err}")
 
                     time.sleep(random.uniform(DELAY_MIN, DELAY_MAX))
 
                 print(f"   ✅ Đã lưu {new_count} job mới từ Trang {page}.")
+                save_excel()
 
+    except (DatabasePersistenceError, ExcelPersistenceError):
+        raise
     except KeyboardInterrupt:
         print("\n⚠️ Người dùng hủy tiến trình.")
     except Exception as e:
         print(f"\n❌ Lỗi hệ thống: {e}")
     finally:
-        driver.quit()
-        db.close()
-
-        # Xuất Excel
-        if all_scraped_records:
-            df = pd.DataFrame(all_scraped_records)
-            df.to_excel(excel_file, index=False)
-            df.to_excel(root_excel_file, index=False)
-            print(f"\n📊 Đã xuất {len(all_scraped_records)} dòng dữ liệu ra Excel:\n  - {excel_file}\n  - {root_excel_file}")
+        try:
+            driver.quit()
+        except Exception as err:
+            print(f"[!] Lỗi khi đóng Chrome CareerViet: {err}")
+        finally:
+            try:
+                save_excel(db.get_all_records(SOURCE_CAREERVIET))
+            finally:
+                db.close()
 
     print("\n🎉 Hoàn tất cào dữ liệu CareerViet!")
 

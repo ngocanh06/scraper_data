@@ -19,7 +19,8 @@ import undetected_chromedriver as uc
 # Thêm thư mục gốc vào python path để import db_manager
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from db_manager import JobDB
+from db_manager import DatabasePersistenceError, JobDB
+from excel_storage import ExcelPersistenceError, save_records_to_excel
 from parse_jobsgo_job import parse_full_jobsgo_job, create_driver, SOURCE_JOBSGO
 from provinces import get_jobsgo_locations
 
@@ -95,18 +96,11 @@ if __name__ == '__main__':
     dataset = []
     excel_file = os.path.join(os.path.dirname(__file__), 'jobsgo_matrix_jobs.xlsx')
 
-    def save_excel():
-        if dataset:
-            df = pd.DataFrame(dataset)
-            try:
-                df.to_excel(excel_file, index=False)
-                print(f'   📊 [JobsGO Excel] Đã lưu {len(dataset)} việc làm vào {excel_file}')
-            except PermissionError:
-                alt = os.path.join(os.path.dirname(__file__), 'jobsgo_matrix_jobs_out.xlsx')
-                df.to_excel(alt, index=False)
-                print(f'   📊 [JobsGO Excel] File {excel_file} đang mở, đã lưu vào {alt}')
-            except Exception as e:
-                print(f'   [!] Lỗi lưu Excel JobsGO: {e}')
+    def save_excel(records=None):
+        records = dataset if records is None else records
+        if records:
+            saved_path = save_records_to_excel(records, excel_file)
+            print(f'   📊 [JobsGO Excel] Đã lưu {len(records)} việc làm vào {saved_path}')
 
     try:
         for cat in JOBSGO_CATEGORIES:
@@ -134,8 +128,8 @@ if __name__ == '__main__':
                     record = parse_full_jobsgo_job(driver, url, stt_index=total_scraped)
 
                     if record:
-                        dataset.append(record)
                         ok = db.insert(SOURCE_JOBSGO, record)
+                        dataset.append(record)
                         if ok:
                             total_saved += 1
                             print(f'         ✅ [JobsGO DB UPSERT] {record["Công việc"][:35]} | {record["Nhà tuyển dụng"][:25]} | {record["Mức lương"]}')
@@ -150,18 +144,22 @@ if __name__ == '__main__':
                 save_excel()
                 time.sleep(random.uniform(2.0, 4.0))
 
+    except (DatabasePersistenceError, ExcelPersistenceError):
+        raise
     except KeyboardInterrupt:
         print('\n[!] Người dùng dừng JobsGO scraper.')
     except Exception as e:
         print(f'\n[!] Lỗi JobsGO scraper: {e}')
     finally:
-        save_excel()
         try:
-            driver.quit()
-        except Exception:
-            pass
-        print('\n[JobsGO Chrome] Đã đóng Chrome.')
-        db.close()
+            save_excel(db.get_all_records(SOURCE_JOBSGO))
+        finally:
+            try:
+                driver.quit()
+            except Exception:
+                pass
+            print('\n[JobsGO Chrome] Đã đóng Chrome.')
+            db.close()
 
     print('\n' + '=' * 70)
     print('=== TỔNG KẾT JOBSGO SCRAPER ===')
