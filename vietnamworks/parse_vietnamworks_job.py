@@ -95,6 +95,81 @@ def clean_badge(val: str, valid_options: list, default: str) -> str:
     return default
 
 
+def _normalize_job_info_label(value: str) -> str:
+    return re.sub(r'\s+', ' ', value).strip().rstrip(':').casefold()
+
+
+def _normalize_job_info_value(value: str, field: str) -> str:
+    value = re.sub(r'\s+', ' ', value).strip()
+    normalized = value.casefold()
+    if normalized in {'', 'not shown', 'not specified', 'not provided', 'n/a', 'không đề cập'}:
+        return 'Không đề cập'
+    if normalized in {'any', 'all', 'no preference', 'không yêu cầu'}:
+        return 'Không yêu cầu'
+    if field == 'gender':
+        if normalized in {'male', 'nam'}:
+            return 'Nam'
+        if normalized in {'female', 'nữ'}:
+            return 'Nữ'
+        if normalized in {'both', 'male and female', 'nam và nữ'}:
+            return 'Nam/Nữ'
+    return value
+
+
+def _get_job_info_value(soup: BeautifulSoup, labels: set[str]) -> str:
+    normalized_labels = {_normalize_job_info_label(label) for label in labels}
+    for label_el in soup.find_all('label'):
+        label = _normalize_job_info_label(label_el.get_text(' ', strip=True))
+        if label not in normalized_labels:
+            continue
+        value_el = label_el.find_next_sibling()
+        if value_el:
+            value = value_el.get_text(' ', strip=True)
+            if value:
+                return value
+    return ''
+
+
+def _extract_work_time(description: str, page_text: str) -> str:
+    heading_pattern = re.compile(
+        r'^(?:thời gian(?:\s*[-–—]\s*địa điểm)?\s*làm việc|working\s+(?:time|hours|schedule))\s*[:：]?\s*(.*)$',
+        re.IGNORECASE,
+    )
+    schedule_pattern = re.compile(
+        r'^\s*[-•]?\s*((?:giờ hành chính|ca(?:\s+làm việc)?|lịch làm việc|working hours|office hours)\s*[:：]?\s*.+)$',
+        re.IGNORECASE,
+    )
+    stop_pattern = re.compile(
+        r'^(?:[-•]\s*)?(?:địa điểm|địa chỉ)(?:\s+làm việc)?\s*[:：]'
+        r'|^(?:mô tả công việc|yêu cầu(?: ứng viên)?|quyền lợi|job information|job description|job requirements|what we can offer)\b',
+        re.IGNORECASE,
+    )
+
+    for source in (description, page_text):
+        lines = [re.sub(r'\s+', ' ', line).strip() for line in source.splitlines()]
+        for index, line in enumerate(lines):
+            heading_match = heading_pattern.match(line)
+            if heading_match:
+                parts = [heading_match.group(1).strip()] if heading_match.group(1).strip() else []
+                for following_line in lines[index + 1:]:
+                    if not following_line:
+                        continue
+                    if stop_pattern.match(following_line):
+                        break
+                    parts.append(re.sub(r'^[-•]\s*', '', following_line).strip())
+                    if len(' '.join(parts)) >= 300:
+                        break
+                work_time = ' '.join(part for part in parts if part).strip()
+                if work_time:
+                    return work_time[:300]
+
+        for line in lines:
+            schedule_match = schedule_pattern.match(line)
+            if schedule_match:
+                return schedule_match.group(1).strip()[:300]
+    return 'Không đề cập'
+
+
 def parse_full_vietnamworks_job(driver: uc.Chrome, url: str, stt_index: int) -> dict | None:
     if not ('-jv' in url or '-jd' in url or '/viec-lam/' in url or 'vietnamworks.com/' in url):
         print(f'  [!] Bỏ qua URL không phải tin tuyển dụng: {url}')
@@ -112,6 +187,14 @@ def parse_full_vietnamworks_job(driver: uc.Chrome, url: str, stt_index: int) -> 
             return None
 
         time.sleep(JS_WAIT)
+        info_more_buttons = driver.find_elements(
+            By.XPATH,
+            "//button[@aria-label='View more' or @aria-label='Xem thêm' "
+            "or normalize-space()='View more' or normalize-space()='Xem thêm']",
+        )
+        if info_more_buttons:
+            driver.execute_script("arguments[0].click();", info_more_buttons[0])
+            time.sleep(0.5)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         # 1. Parse JSON-LD Schema
@@ -236,6 +319,16 @@ def parse_full_vietnamworks_job(driver: uc.Chrome, url: str, stt_index: int) -> 
             job_type = 'Bán thời gian'
         else:
             job_type = clean_badge(str(emp_type_raw), ["Toàn thời gian", "Bán thời gian", "Thực tập", "FULL_TIME", "PART_TIME"], "Toàn thời gian")
+
+        gender = _normalize_job_info_value(
+            _get_job_info_value(soup, {'gender', 'giới tính'}),
+            'gender',
+        )
+        work_time = _extract_work_time(description, soup.get_text('\n', strip=True))
+        age = _normalize_job_info_value(
+            _get_job_info_value(soup, {'age', 'age preference', 'độ tuổi', 'độ tuổi ưu tiên'}),
+            'age',
+        )
 
         # 9.2 Số lượng tuyển
         quantity = 'Không đề cập'
